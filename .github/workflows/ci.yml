@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, test, build (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:smoke
+      - run: npm run lint:pkg
+
+  older-node:
+    name: Smoke test built package (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@v7
+      # The toolchain needs a current Node; the built package must run on older ones.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --version
+      - run: node test/smoke/esm.mjs
+      - run: node test/smoke/cjs.cjs
+      - run: node test/smoke/default-entry.mjs
+
+  consumer:
+    name: Install the packed tarball in a fresh project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm pack
+      - name: Use the tarball like a user would
+        run: |
+          mkdir -p "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer"
+          npm init -y > /dev/null
+          npm install "$GITHUB_WORKSPACE"/awaitfall-*.tgz
+          test -z "$(npm ls --all --parseable | grep -v -e '/consumer$' -e '/awaitfall$')" || { echo 'unexpected runtime dependencies'; exit 1; }
+          node --input-type=module -e "import { trace, span } from 'awaitfall'; const v = await trace('esm', () => span('a', async () => 1), { print: false }); if (v !== 1) process.exit(1)"
+          node -e "const { trace, span } = require('awaitfall'); if (trace('cjs', () => span('a', () => 2), { print: false }) !== 2) process.exit(1)"
+          echo 'ESM and CommonJS consumers work'

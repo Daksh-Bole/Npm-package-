@@ -1,0 +1,103 @@
+{
+  "name": "awaitfall",
+  "version": "0.1.0",
+  "description": "See where your async time goes. A zero-config waterfall of your awaits in the terminal, with automatic hints for N+1 loops, missed Promise.all, and forgotten awaits.",
+  "keywords": [
+    "async",
+    "await",
+    "performance",
+    "profiling",
+    "tracing",
+    "waterfall",
+    "span",
+    "timing",
+    "n+1",
+    "promise",
+    "asynclocalstorage",
+    "debugging",
+    "devtools",
+    "express",
+    "fetch"
+  ],
+  "license": "MIT",
+  "author": "Daksh-Bole (https://github.com/Daksh-Bole)",
+  "homepage": "https://github.com/Daksh-Bole/Npm-package-#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daksh-Bole/Npm-package-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Daksh-Bole/Npm-package-/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "node": {
+        "import": {
+          "types": "./dist/node.d.ts",
+          "default": "./dist/node.js"
+        },
+        "require": {
+          "types": "./dist/node.d.cts",
+          "default": "./dist/node.cjs"
+        }
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/node.cjs",
+  "module": "./dist/node.js",
+  "types": "./dist/node.d.cts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/index.cjs",
+    "./dist/node.js",
+    "./dist/node.cjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --coverage.include=src/**",
+    "test:smoke": "node test/smoke/esm.mjs && node test/smoke/cjs.cjs && node test/smoke/default-entry.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "lint:pkg": "publint --strict && attw --pack .",
+    "demo": "node examples/demo.mjs",
+    "screenshot": "node scripts/screenshot.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:smoke && npm run lint:pkg",
+    "prepublishOnly": "npm run check"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.15.0",
+    "express": "^5.3.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "publint": "^0.3.25",
+    "tsup": "^9.0.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.0"
+  }
+}
